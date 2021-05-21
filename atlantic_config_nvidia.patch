@@ -1,0 +1,27 @@
+diff --git a/aq_cfg.h b/aq_cfg.h
+index bafab87..2faeed2 100644
+--- a/aq_cfg.h
++++ b/aq_cfg.h
+@@ -76,7 +76,7 @@
+ #define AQ_CFG_FC_MODE AQ_NIC_FC_FULL
+ 
+ /* Default WOL mode used on initialization */
+-#define AQ_CFG_WOL_MODES AQ_NIC_WOL_MODES
++#define AQ_CFG_WOL_MODES 0
+ 
+ #define AQ_CFG_SPEED_MSK  0xFFFFU	/* 0xFFFFU==auto_neg */
+ 
+@@ -89,11 +89,12 @@
+  * 
+  * #define AQ_CFG_FAST_START
+  */
++#define AQ_CFG_FAST_START
+ 
+ /* HW bug workaround:
+  * Disable RSS for UDP using rx flow filter 0.
+  */
+-#define AQ_CFG_UDP_RSS_DISABLE	0
++#define AQ_CFG_UDP_RSS_DISABLE	1
+ 
+ 
+ #define AQ_CFG_LOCK_TRYS   100U

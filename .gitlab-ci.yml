@@ -1,0 +1,154 @@
+stages:
+  - update-kernel
+  - checkpatch
+  - build
+  - smatch-test
+
+.building-checking-only: &building-checking-only
+  only:
+    - /^(dev_|master).*$/
+  when: always
+
+checkpatch:
+  stage: checkpatch
+  <<: *building-checking-only
+  script:
+    - 'git diff $(git merge-base origin/master HEAD).. | /home/gitlab-runner/kernels/linux/scripts/checkpatch.pl --no-tree --ignore LINUX_VERSION_CODE,CONSTANT_COMPARISON,SPLIT_STRING'
+  allow_failure: true
+
+build-rhel-7.2:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.10.0-327.36.3.el7/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-rhel-7.3:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.10.0-514.26.2.el7/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-rhel-7.4:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.10.0-693.21.1.el7/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-rhel-7.5:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.10.0-862.11.6.el7/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-rhel-7.6:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.10.0-957.el7.x86_64/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-rhel-8.0:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-4.18.0-80.7.1.el8_0/'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-rhel-8.1:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-4.18.0-107.el8/'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-3.10:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.10/linux/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-3.16:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-3.16/linux/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-4.14:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-4.14/linux/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-4.4:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-4.4/linux/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-4.9:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux-4.9/linux/ CC=gcc-4.8'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+build-upstream:
+  stage: build
+  <<: *building-checking-only
+  script:
+    - 'make KDIR=/home/gitlab-runner/kernels/linux'
+    - '! objdump -t atlantic.ko | grep UND | grep -E "(aq_)|(hw_atl)"'
+  after_script:
+    - 'make clean --silent'
+
+smatch:
+  stage: smatch-test
+  <<: *building-checking-only
+  script:
+    - 'make CHECK="~/smatch/smatch -p=kernel" C=1 > err.txt'
+    - '! grep -E "(error|warn|warning)" err.txt'
+  after_script:
+    - 'make clean --silent'
+
+update-upstream:
+  stage: update-kernel
+  only:
+    - /^(dev_|master).*$/
+  script:
+    - 'git -C /home/gitlab-runner/kernels/linux pull'
+    - 'make -C /home/gitlab-runner/kernels/linux/ olddefconfig'
+    - 'make -C /home/gitlab-runner/kernels/linux/ prepare'
+    - 'make -C /home/gitlab-runner/kernels/linux/ modules_prepare'
+  when: always
